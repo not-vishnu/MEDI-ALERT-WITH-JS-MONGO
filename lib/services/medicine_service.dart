@@ -1,51 +1,156 @@
 import '../models/medicine_model.dart';
-import 'firestore_service.dart';
+import 'api_service.dart';
 
 class MedicineService {
-  final FirestoreService _firestore = FirestoreService();
+  /// Get all medicines from MongoDB
+  Future<List<MedicineModel>> getMedicines() async {
+    final response = await ApiService.getMedicines();
 
-  /// Get all medicines
-  Stream<List<MedicineModel>> getMedicines() {
-    return _firestore.getMedicines();
+    if (response['success'] != true) {
+      throw Exception(response['message'] ?? 'Failed to load medicines');
+    }
+
+    final List medicines = response['medicines'] ?? [];
+
+    return medicines.map((medicine) {
+      final map = Map<String, dynamic>.from(medicine);
+
+      return MedicineModel.fromMap(
+        map,
+        map['_id']?.toString() ?? '',
+      );
+    }).toList();
   }
 
   /// Add a new medicine
-  Future<void> addMedicine(MedicineModel medicine) async {
-    await _firestore.addMedicine(medicine);
+  Future<MedicineModel> addMedicine(MedicineModel medicine) async {
+    final response = await ApiService.createMedicine(
+      name: medicine.name,
+      dosage: medicine.dosage,
+      time: medicine.time,
+      status: medicine.status,
+      reminderEnabled: medicine.reminderEnabled,
+      notificationId: medicine.notificationId,
+      reminderDate: medicine.reminderDate,
+      notes: medicine.notes,
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['message'] ?? 'Failed to add medicine');
+    }
+
+    final map = Map<String, dynamic>.from(response['medicine']);
+
+    return MedicineModel.fromMap(
+      map,
+      map['_id']?.toString() ?? '',
+    );
   }
 
   /// Delete medicine
   Future<void> deleteMedicine(String id) async {
-    await _firestore.deleteMedicine(id);
+    final response = await ApiService.deleteMedicine(id);
+
+    if (response['success'] != true) {
+      throw Exception(response['message'] ?? 'Failed to delete medicine');
+    }
   }
 
-  /// Update medicine status (Taken/Missed)
+  /// Update medicine status
   Future<void> updateStatus(String id, String status) async {
-    await _firestore.updateStatus(id, status);
+    final response = await ApiService.updateMedicine(
+      id,
+      status: status,
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['message'] ?? 'Failed to update status');
+    }
   }
 
   /// Smart Reminder status update
   Future<void> updateMedicineStatus(String id, String status) async {
-    await _firestore.updateMedicineStatus(id, status);
+    await updateStatus(id, status);
   }
 
   /// Enable / Disable Reminder
-  Future<void> updateReminderEnabled(String id, bool enabled) async {
-    await _firestore.updateReminderEnabled(id, enabled);
+  Future<void> updateReminderEnabled(
+    String id,
+    bool enabled,
+  ) async {
+    final response = await ApiService.updateMedicine(
+      id,
+      reminderEnabled: enabled,
+    );
+
+    if (response['success'] != true) {
+      throw Exception(
+        response['message'] ?? 'Failed to update reminder',
+      );
+    }
   }
 
   /// Update Notification ID
-  Future<void> updateNotificationId(String id, int notificationId) async {
-    await _firestore.updateNotificationId(id, notificationId);
+  Future<void> updateNotificationId(
+    String id,
+    int notificationId,
+  ) async {
+    final response = await ApiService.updateMedicine(
+      id,
+      notificationId: notificationId,
+    );
+
+    if (response['success'] != true) {
+      throw Exception(
+        response['message'] ?? 'Failed to update notification',
+      );
+    }
   }
 
   /// Update Reminder Date
-  Future<void> updateReminderDate(String id, DateTime reminderDate) async {
-    await _firestore.updateReminderDate(id, reminderDate);
+  Future<void> updateReminderDate(
+    String id,
+    DateTime reminderDate,
+  ) async {
+    final response = await ApiService.updateMedicine(
+      id,
+      reminderDate: reminderDate,
+    );
+
+    if (response['success'] != true) {
+      throw Exception(
+        response['message'] ?? 'Failed to update reminder date',
+      );
+    }
   }
 
   /// Update medicine details
-  Future<void> updateMedicine(MedicineModel medicine) async {
-    await _firestore.updateMedicine(medicine);
+  Future<MedicineModel> updateMedicine(
+    MedicineModel medicine,
+  ) async {
+    final response = await ApiService.updateMedicine(
+      medicine.id,
+      name: medicine.name,
+      dosage: medicine.dosage,
+      time: medicine.time,
+      status: medicine.status,
+      reminderEnabled: medicine.reminderEnabled,
+      notificationId: medicine.notificationId,
+      reminderDate: medicine.reminderDate,
+      notes: medicine.notes,
+    );
+
+    if (response['success'] != true) {
+      throw Exception(
+        response['message'] ?? 'Failed to update medicine',
+      );
+    }
+
+    final map = Map<String, dynamic>.from(response['medicine']);
+
+    return MedicineModel.fromMap(
+      map,
+      map['_id']?.toString() ?? medicine.id,
+    );
   }
 }

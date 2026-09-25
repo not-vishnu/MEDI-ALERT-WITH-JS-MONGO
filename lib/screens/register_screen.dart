@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/auth_provider.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
@@ -326,10 +325,14 @@ class _RegisterScreenState extends State<RegisterScreen>
                                         );
                                         return;
                                       }
-                                      final error = await auth.register(
-                                        emailController.text.trim(),
-                                        passwordController.text.trim(),
-                                      );
+                                    final error = await Provider.of<AuthProvider>(
+ 				      context,
+  				      listen: false,
+				    ).register(
+  				      name: nameController.text.trim(),
+  				      email: emailController.text.trim(),
+ 				      password: passwordController.text,
+				    );
                                       if (!mounted) return;
                                       if (error == null) {
                                         Navigator.pushReplacement(

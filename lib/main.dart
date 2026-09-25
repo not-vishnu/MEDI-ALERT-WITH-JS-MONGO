@@ -1,10 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
-import 'firebase_options.dart';
 
 import 'providers/auth_provider.dart' as app_auth;
 import 'providers/medicine_provider.dart';
@@ -25,10 +21,6 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
   try {
     await NotificationService.instance.init();
@@ -72,24 +64,47 @@ class MediAlertAI extends StatelessWidget {
   }
 }
 
-class AppWrapper extends StatelessWidget {
+class AppWrapper extends StatefulWidget {
   const AppWrapper({super.key});
 
   @override
+  State<AppWrapper> createState() => _AppWrapperState();
+}
+
+class _AppWrapperState extends State<AppWrapper> {
+  bool _checkingLogin = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLogin();
+  }
+
+  Future<void> _checkLogin() async {
+    await Provider.of<app_auth.AuthProvider>(
+      context,
+      listen: false,
+    ).loadUser();
+
+    if (!mounted) return;
+
+    setState(() {
+      _checkingLogin = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SplashScreen();
-        }
+    if (_checkingLogin) {
+      return const SplashScreen();
+    }
 
-        if (snapshot.hasData) {
-          return const HomeScreen();
-        }
+    final auth = Provider.of<app_auth.AuthProvider>(context);
 
-        return const LoginScreen();
-      },
-    );
+    if (auth.isLoggedIn) {
+      return const HomeScreen();
+    }
+
+    return const LoginScreen();
   }
 }

@@ -1,7 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import '../providers/medicine_provider.dart';
 
 import 'add_medicine_screen.dart';
 import 'analytics_screen.dart';
@@ -50,14 +52,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+
     _bgController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 14),
     )..repeat(reverse: true);
+
     _bgAnimation = CurvedAnimation(
       parent: _bgController,
       curve: Curves.easeInOut,
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      Provider.of<MedicineProvider>(
+        context,
+        listen: false,
+      ).loadMedicines();
+    });
   }
 
   @override

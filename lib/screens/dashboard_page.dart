@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import '../models/medicine_model.dart';
 import '../providers/medicine_provider.dart';
-import '../utils/colors.dart';
 import 'edit_medicine_screen.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -594,136 +593,131 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<MedicineProvider>(context);
 
-    return StreamBuilder<List<MedicineModel>>(
-      stream: provider.medicines,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Colors.white),
-          );
-        }
+    if (provider.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
+    }
 
-        final medicines = snapshot.data ?? [];
-        final total = medicines.length;
-        final taken = medicines.where((m) => m.status == "Taken").length;
-        final missed = medicines.where((m) => m.status == "Missed").length;
-        final pending = medicines.where((m) => m.status == "Pending").length;
-        final double adherence = total == 0 ? 0 : (taken / total) * 100;
+    final medicines = provider.medicines;
+    final total = medicines.length;
+    final taken = medicines.where((m) => m.status == "Taken").length;
+    final missed = medicines.where((m) => m.status == "Missed").length;
+    final pending = medicines.where((m) => m.status == "Pending").length;
+    final double adherence = total == 0 ? 0 : (taken / total) * 100;
 
-        return ListView(
-          padding: const EdgeInsets.all(18),
-          children: [
-            heroHeader(
-              context: context,
-              total: total,
-              taken: taken,
-              adherence: adherence,
-            ),
-            statisticsGrid(
-              total: total,
-              taken: taken,
-              pending: pending,
-              missed: missed,
-            ),
-            nextMedicineCard(medicines),
-            quickActions(context),
-            const SizedBox(height: 30),
-            const Text(
-              "Today's Medicines",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 18),
-            if (medicines.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 50),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.medication_liquid,
-                        size: 90,
-                        color: Colors.white.withValues(alpha: .35),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        "No medicines added yet",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Tap the Add Medicine button\nbelow to get started.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white70, fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              ...medicines.map(
-                (medicine) => medicineCard(context, provider, medicine),
-              ),
-            const SizedBox(height: 25),
-            _glass(
-              radius: 25,
-              padding: const EdgeInsets.all(22),
-              child: Row(
+    return ListView(
+      padding: const EdgeInsets.all(18),
+      children: [
+        heroHeader(
+          context: context,
+          total: total,
+          taken: taken,
+          adherence: adherence,
+        ),
+        statisticsGrid(
+          total: total,
+          taken: taken,
+          pending: pending,
+          missed: missed,
+        ),
+        nextMedicineCard(medicines),
+        quickActions(context),
+        const SizedBox(height: 30),
+        const Text(
+          "Today's Medicines",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 18),
+        if (medicines.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 50),
+              child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: _accent.withValues(alpha: .35),
-                    child: const Icon(
-                      Icons.smart_toy,
+                  Icon(
+                    Icons.medication_liquid,
+                    size: 90,
+                    color: Colors.white.withValues(alpha: .35),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "No medicines added yet",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                       color: Colors.white,
-                      size: 30,
                     ),
                   ),
-                  const SizedBox(width: 18),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "MediAlert AI",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          "Ask questions about medicines, dosage, side effects and general health.",
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Tap the Add Medicine button\nbelow to get started.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 25),
-            const Center(
-              child: Text(
-                "Stay healthy • Stay consistent 💙",
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w500,
+          )
+        else
+          ...medicines.map(
+            (medicine) => medicineCard(context, provider, medicine),
+          ),
+        const SizedBox(height: 25),
+        _glass(
+          radius: 25,
+          padding: const EdgeInsets.all(22),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: _accent.withValues(alpha: .35),
+                child: const Icon(
+                  Icons.smart_toy,
+                  color: Colors.white,
+                  size: 30,
                 ),
               ),
+              const SizedBox(width: 18),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "MediAlert AI",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      "Ask questions about medicines, dosage, side effects and general health.",
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 25),
+        const Center(
+          child: Text(
+            "Stay healthy • Stay consistent 💙",
+            style: TextStyle(
+              color: Colors.white70,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: 120),
-          ],
-        );
-      },
+          ),
+        ),
+        const SizedBox(height: 120),
+      ],
     );
   }
 }
